@@ -101,8 +101,8 @@ body{
 <body>
 
 <div class="header">
-  <h1>📷 QR Scanner Pro</h1>
-  <p>Ataovy eo anaty frame ny QR code</p>
+  <h1>📷 QR Scanner</h1>
+  <p>Ataovy ao anaty frame ny QR code</p>
 </div>
 
 <div id="reader">
@@ -131,11 +131,28 @@ function onScanSuccess(text){
 
     beep();
 
-    // auto redirect raha URL
+    text = text.trim();
+
+    // CASE 1: direct link
     if(text.startsWith("http")){
-        setTimeout(()=>{
-            window.location.href = text;
-        }, 800);
+        window.location.href = text;
+        return;
+    }
+
+    // CASE 2: query format (user/pass/url)
+    try {
+        const params = new URLSearchParams(text);
+
+        const url = params.get("url");
+
+        if(url){
+            setTimeout(() => {
+                window.location.href = url;
+            }, 500);
+        }
+
+    } catch(e){
+        console.log("Not a valid param format");
     }
 }
 
@@ -148,13 +165,12 @@ Html5Qrcode.getCameras().then(devices => {
     let cameraId = devices[0].id;
 
     scanner.start(
-        cameraId,
-        {
-            fps: 12,
-            qrbox: 220
-        },
-        onScanSuccess,
-        onScanError
+      { facingMode: { exact: "environment" } },
+      {
+        fps: 5,
+        qrbox: 180
+      },
+      onScanSuccess
     );
 
 }).catch(err => {
