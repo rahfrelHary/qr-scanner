@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Halley QR Scanner</title>
+
+<script src="https://unpkg.com/html5-qrcode"></script>
+
+<style>
+body{
+  margin:0;
+  font-family:Arial, sans-serif;
+  background:#0b1220;
+  color:white;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+}
+
+/* HEADER */
+.header{
+  margin-top:20px;
+  text-align:center;
+}
+.header h1{
+  font-size:20px;
+  margin:0;
+}
+.header p{
+  font-size:12px;
+  opacity:0.6;
+}
+
+/* SCANNER FRAME */
+#reader{
+  width:320px;
+  margin-top:20px;
+  border-radius:18px;
+  overflow:hidden;
+  border:2px solid rgba(0,212,255,0.3);
+  box-shadow:0 0 25px rgba(0,212,255,0.15);
+  position:relative;
+}
+
+/* SCAN OVERLAY */
+.scan-frame{
+  position:absolute;
+  top:50%;
+  left:50%;
+  transform:translate(-50%,-50%);
+  width:220px;
+  height:220px;
+  border:2px solid #00d4ff;
+  border-radius:12px;
+  animation:pulse 1.5s infinite;
+  pointer-events:none;
+}
+
+@keyframes pulse{
+  0%{ box-shadow:0 0 0 0 rgba(0,212,255,0.4);}
+  70%{ box-shadow:0 0 0 15px rgba(0,212,255,0);}
+  100%{ box-shadow:0 0 0 0 rgba(0,212,255,0);}
+}
+
+/* RESULT */
+#result{
+  margin-top:15px;
+  padding:12px;
+  font-size:14px;
+  color:#00ffae;
+  word-break:break-word;
+  text-align:center;
+}
+
+/* SCAN LINE */
+.scan-line{
+  position:absolute;
+  width:100%;
+  height:2px;
+  background:#00d4ff;
+  top:0;
+  animation:scanMove 2s infinite;
+  opacity:0.7;
+}
+
+@keyframes scanMove{
+  0%{ top:0; }
+  50%{ top:100%; }
+  100%{ top:0; }
+}
+
+.footer{
+  margin-top:15px;
+  font-size:11px;
+  opacity:0.5;
+}
+</style>
+</head>
+
+<body>
+
+<div class="header">
+  <h1>📷 QR Scanner Pro</h1>
+  <p>Ataovy eo anaty frame ny QR code</p>
+</div>
+
+<div id="reader">
+  <div class="scan-frame"></div>
+  <div class="scan-line"></div>
+</div>
+
+<div id="result">Miandry scan...</div>
+
+<div class="footer">Halley Hotspot Scanner</div>
+
+<script>
+
+function beep(){
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    osc.frequency.value = 800;
+    osc.connect(ctx.destination);
+    osc.start();
+    osc.stop(ctx.currentTime + 0.1);
+}
+
+function onScanSuccess(text){
+
+    document.getElementById("result").innerText = "✔ " + text;
+
+    beep();
+
+    // auto redirect raha URL
+    if(text.startsWith("http")){
+        setTimeout(()=>{
+            window.location.href = text;
+        }, 800);
+    }
+}
+
+function onScanError(){}
+
+const scanner = new Html5Qrcode("reader");
+
+Html5Qrcode.getCameras().then(devices => {
+
+    let cameraId = devices[0].id;
+
+    scanner.start(
+        cameraId,
+        {
+            fps: 12,
+            qrbox: 220
+        },
+        onScanSuccess,
+        onScanError
+    );
+
+}).catch(err => {
+    document.getElementById("result").innerText =
+    "❌ Camera error: " + err;
+});
+
+</script>
+
+</body>
+</html>
